@@ -49,7 +49,7 @@ export const createCommonSlice: StateCreator<
     const { ClientService } = await import('@/services/user/client');
 
     // TODO: add userId
-    const clientService = new ClientService('');
+    const clientService = new ClientService('123');
 
     await clientService.updateAvatar(avatar);
     await get().refreshUserState();
