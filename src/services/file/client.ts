@@ -1,4 +1,4 @@
-import { clientDB } from '@/database/client/db';
+import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
 import { FileModel } from '@/database/server/models/file';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileItem, UploadFileParams } from '@/types/files';
@@ -6,10 +6,21 @@ import { FileItem, UploadFileParams } from '@/types/files';
 import { IFileService } from './type';
 
 export class ClientService implements IFileService {
-  private fileModel: FileModel;
+  private readonly fallbackUserId: string;
 
-  constructor(userId: string) {
-    this.fileModel = new FileModel(clientDB as any, userId);
+  private get userId(): string {
+    return getClientDBUserId() || this.fallbackUserId;
+  }
+
+  private get fileModel(): FileModel {
+    console.time('new FileModel');
+    const model = new FileModel(clientDB as any, this.userId);
+    console.timeEnd('new FileModel');
+    return model;
+  }
+
+  constructor(userId?: string) {
+    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
   }
 
   async createFile(file: UploadFileParams) {

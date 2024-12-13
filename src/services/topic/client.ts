@@ -1,13 +1,22 @@
-import { clientDB } from '@/database/client/db';
+import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
 import { TopicModel } from '@/database/server/models/topic';
 import { ChatTopic } from '@/types/topic';
 
 import { CreateTopicParams, ITopicService, QueryTopicParams } from './type';
 
 export class ClientService implements ITopicService {
-  private topicModel: TopicModel;
-  constructor(userId: string) {
-    this.topicModel = new TopicModel(clientDB as any, userId);
+  private readonly fallbackUserId: string;
+
+  private get userId(): string {
+    return getClientDBUserId() || this.fallbackUserId;
+  }
+
+  private get topicModel(): TopicModel {
+    return new TopicModel(clientDB as any, this.userId);
+  }
+
+  constructor(userId?: string) {
+    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
   }
 
   async createTopic(params: CreateTopicParams): Promise<string> {

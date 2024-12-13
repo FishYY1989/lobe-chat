@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { clientDB } from '@/database/client/db';
+import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
 import { MessageItem } from '@/database/schemas';
 import { MessageModel } from '@/database/server/models/message';
 import {
@@ -14,10 +14,18 @@ import {
 import { IMessageService } from './type';
 
 export class ClientService implements IMessageService {
-  private messageModel: MessageModel;
+  private readonly fallbackUserId: string;
 
-  constructor(userId: string) {
-    this.messageModel = new MessageModel(clientDB as any, userId);
+  private get userId(): string {
+    return getClientDBUserId() || this.fallbackUserId;
+  }
+
+  private get messageModel(): MessageModel {
+    return new MessageModel(clientDB as any, this.userId);
+  }
+
+  constructor(userId?: string) {
+    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
   }
 
   async createMessage(data: CreateMessageParams) {
