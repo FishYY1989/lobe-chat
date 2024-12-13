@@ -1,26 +1,14 @@
-import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
+import { clientDB } from '@/database/client/db';
 import { FileModel } from '@/database/server/models/file';
+import { BaseClientService } from '@/services/baseClientService';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileItem, UploadFileParams } from '@/types/files';
 
 import { IFileService } from './type';
 
-export class ClientService implements IFileService {
-  private readonly fallbackUserId: string;
-
-  private get userId(): string {
-    return getClientDBUserId() || this.fallbackUserId;
-  }
-
+export class ClientService extends BaseClientService implements IFileService {
   private get fileModel(): FileModel {
-    console.time('new FileModel');
-    const model = new FileModel(clientDB as any, this.userId);
-    console.timeEnd('new FileModel');
-    return model;
-  }
-
-  constructor(userId?: string) {
-    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
+    return new FileModel(clientDB as any, this.userId);
   }
 
   async createFile(file: UploadFileParams) {

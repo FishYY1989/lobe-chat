@@ -1,25 +1,16 @@
 import { LobeChatPluginManifest } from '@lobehub/chat-plugin-sdk';
 
-import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
+import { clientDB } from '@/database/client/db';
 import { PluginModel } from '@/database/server/models/plugin';
+import { BaseClientService } from '@/services/baseClientService';
 import { LobeTool } from '@/types/tool';
 import { LobeToolCustomPlugin } from '@/types/tool/plugin';
 
 import { IPluginService, InstallPluginParams } from './type';
 
-export class ClientService implements IPluginService {
-  private readonly fallbackUserId: string;
-
-  private get userId(): string {
-    return getClientDBUserId() || this.fallbackUserId;
-  }
-
+export class ClientService extends BaseClientService implements IPluginService {
   private get pluginModel(): PluginModel {
     return new PluginModel(clientDB as any, this.userId);
-  }
-
-  constructor(userId?: string) {
-    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
   }
 
   installPlugin = async (plugin: InstallPluginParams) => {

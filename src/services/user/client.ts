@@ -1,22 +1,18 @@
 import { DeepPartial } from 'utility-types';
 
-import { FALLBACK_CLIENT_DB_USER_ID, clientDB, getClientDBUserId } from '@/database/client/db';
+import { clientDB } from '@/database/client/db';
 import { MessageModel } from '@/database/server/models/message';
 import { SessionModel } from '@/database/server/models/session';
 import { UserModel } from '@/database/server/models/user';
+import { BaseClientService } from '@/services/baseClientService';
 import { UserGuide, UserInitializationState, UserPreference } from '@/types/user';
 import { UserSettings } from '@/types/user/settings';
 import { AsyncLocalStorage } from '@/utils/localStorage';
 
 import { IUserService } from './type';
 
-export class ClientService implements IUserService {
+export class ClientService extends BaseClientService implements IUserService {
   private preferenceStorage: AsyncLocalStorage<UserPreference>;
-  private readonly fallbackUserId: string;
-
-  private get userId(): string {
-    return getClientDBUserId() || this.fallbackUserId;
-  }
 
   private get userModel(): UserModel {
     return new UserModel(clientDB as any, this.userId);
@@ -29,8 +25,8 @@ export class ClientService implements IUserService {
   }
 
   constructor(userId?: string) {
+    super(userId);
     this.preferenceStorage = new AsyncLocalStorage('LOBE_PREFERENCE');
-    this.fallbackUserId = userId || FALLBACK_CLIENT_DB_USER_ID;
   }
 
   async getUserState(): Promise<UserInitializationState> {
