@@ -1,4 +1,10 @@
-import { FALLBACK_CLIENT_DB_USER_ID, getClientDBUserId } from '@/database/client/db';
+const getClientDBUserId = () => {
+  if (typeof window === 'undefined') return undefined;
+
+  return window.__lobeClientUserId;
+};
+
+const FALLBACK_CLIENT_DB_USER_ID = 'DEFAULT_LOBE_CHAT_USER';
 
 export class BaseClientService {
   private readonly fallbackUserId: string;

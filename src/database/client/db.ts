@@ -31,11 +31,3 @@ export function getClientDB() {
 }
 
 export const clientDB = getClientDB() as unknown as PgliteDatabase<typeof schema>;
-
-export const getClientDBUserId = () => {
-  if (typeof window === 'undefined') return undefined;
-
-  return window.__lobeClientUserId;
-};
-
-export const FALLBACK_CLIENT_DB_USER_ID = 'DEFAULT_LOBE_CHAT_USER';
