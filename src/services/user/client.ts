@@ -1,6 +1,7 @@
 import { DeepPartial } from 'utility-types';
 
 import { clientDB } from '@/database/client/db';
+import { UserItem, users } from '@/database/schemas';
 import { MessageModel } from '@/database/server/models/message';
 import { SessionModel } from '@/database/server/models/session';
 import { UserModel } from '@/database/server/models/user';
@@ -8,6 +9,7 @@ import { BaseClientService } from '@/services/baseClientService';
 import { UserGuide, UserInitializationState, UserPreference } from '@/types/user';
 import { UserSettings } from '@/types/user/settings';
 import { AsyncLocalStorage } from '@/utils/localStorage';
+import { uuid } from '@/utils/uuid';
 
 import { IUserService } from './type';
 
@@ -30,6 +32,10 @@ export class ClientService extends BaseClientService implements IUserService {
   }
 
   async getUserState(): Promise<UserInitializationState> {
+    // if user not exist in the db, create one to make sure the user exist
+    // and init the window.__lobeClientUserId
+    await this.makeSureUserExist();
+
     const state = await this.userModel.getUserState();
     const user = await UserModel.findById(clientDB as any, this.userId);
     const messageCount = await this.messageModel.count();
@@ -65,5 +71,20 @@ export class ClientService extends BaseClientService implements IUserService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,unused-imports/no-unused-vars
   async updateGuide(guide: Partial<UserGuide>) {
     throw new Error('Method not implemented.');
+  }
+
+  private async makeSureUserExist() {
+    const existUsers = await clientDB.query.users.findMany();
+
+    let user: { id: string };
+    if (existUsers.length === 0) {
+      user = await clientDB.insert(users).values({ id: uuid() }).returning();
+    } else {
+      user = existUsers[0];
+    }
+
+    if (typeof window !== 'undefined') {
+      window.__lobeClientUserId = user.id;
+    }
   }
 }
